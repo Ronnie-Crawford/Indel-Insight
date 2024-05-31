@@ -10,6 +10,17 @@ from config import Config
 class Region:
     
     def __init__(self, chromosome: str, start: int, end: int, config: Config, callset: zarr.hierarchy.Group):
+
+        """
+        Initialises the Region object and sets up necessary properties and dataframes.
+
+        Parameters:
+        chromosome (str): The chromosome identifier.
+        start (int): The start position of the region.
+        end (int): The end position of the region.
+        config (Config): A Config object containing configuration settings.
+        callset (zarr.hierarchy.Group): The zarr group containing genomic data.
+        """
         
         self.set_config_values(config)
         self.chromosome = self.format_chromosome_string(chromosome)
@@ -27,7 +38,10 @@ class Region:
     def set_config_values(self, config: Config) -> None:
         
         """
-        Reads values from config object and sets them as self properties.
+        Reads values from the config object and sets them as attributes of the Region object.
+
+        Parameters:
+        config (Config): A Config object containing configuration settings.
         """
         
         print("Setting properties from config...")
@@ -39,7 +53,13 @@ class Region:
     def format_chromosome_string(self, chromosome: str) -> str:
         
         """
-        Transforms input chromosome into format used in Pf dataset.
+        Transforms the input chromosome into the format used in the Pf dataset.
+
+        Parameters:
+        chromosome (str): The input chromosome string.
+
+        Returns:
+        str: The formatted chromosome string.
         """
         
         print("Formatting chromosome input...")
@@ -59,7 +79,16 @@ class Region:
     def find_coordinates(self, chromosome: int, start: int, end: int, callset: zarr.hierarchy.Group) -> int:
     
         """
-        
+        Finds the coordinates of the region within the genomic data.
+
+        Parameters:
+        chromosome (int): The chromosome identifier.
+        start (int): The start position of the region.
+        end (int): The end position of the region.
+        callset (zarr.hierarchy.Group): The zarr group containing genomic data.
+
+        Returns:
+        tuple: A tuple containing the start and end coordinates within the data.
         """
         
         print("Finding coordinates of region...")
@@ -78,7 +107,16 @@ class Region:
     def generate_variants_df(self, callset: zarr.hierarchy.Group, chromosome: int, start: int, end: int) -> pd.DataFrame:
         
         """
-        
+        Generates a DataFrame of variants for the specified region.
+
+        Parameters:
+        callset (zarr.hierarchy.Group): The zarr group containing genomic data.
+        chromosome (int): The chromosome identifier.
+        start (int): The start coordinate within the data.
+        end (int): The end coordinate within the data.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing variant information.
         """
         
         print("Generating variants dataframe...")
@@ -98,7 +136,13 @@ class Region:
     def generate_metadata_df(self, metadata_path: str) -> pd.DataFrame:
         
         """
-        
+        Generates a DataFrame of metadata from the specified path.
+
+        Parameters:
+        metadata_path (str): The path to the metadata file.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing metadata.
         """
         
         print("Generating metadata dataframe...")
@@ -108,7 +152,17 @@ class Region:
     def generate_genotypes_df(self, callset: zarr.hierarchy.Group, variants_df: pd.DataFrame, chromosome: int, start: int, end: int) -> pd.DataFrame:
         
         """
-        
+        Generates a DataFrame of genotypes for the specified region.
+
+        Parameters:
+        callset (zarr.hierarchy.Group): The zarr group containing genomic data.
+        variants_df (pd.DataFrame): DataFrame containing variant information.
+        chromosome (int): The chromosome identifier.
+        start (int): The start coordinate within the data.
+        end (int): The end coordinate within the data.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing genotype information.
         """
        
         print("Generating genotypes dataframe...")
@@ -127,7 +181,16 @@ class Region:
     def generate_allele_depths_df(self, callset: zarr.hierarchy.Group, chromosome: int, start: int, end: int) -> pd.DataFrame:
         
         """
-        
+        Generates a DataFrame of allele depths for the specified region.
+
+        Parameters:
+        callset (zarr.hierarchy.Group): The zarr group containing genomic data.
+        chromosome (int): The chromosome identifier.
+        start (int): The start coordinate within the data.
+        end (int): The end coordinate within the data.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing allele depth information.
         """
         
         print("Generating allele depths dataframe...")
@@ -146,7 +209,15 @@ class Region:
     def apply_quality_control_genotypes(self, genotypes_df: pd.DataFrame, variants_df: pd.DataFrame, metadata_df: pd.DataFrame) -> pd.DataFrame:
         
         """
-        Uses quality flags in position and sample metadata to drop uneeded genotype rows and columns.
+        Applies quality control filters to the genotypes DataFrame using metadata.
+
+        Parameters:
+        genotypes_df (pd.DataFrame): DataFrame containing genotype information.
+        variants_df (pd.DataFrame): DataFrame containing variant information.
+        metadata_df (pd.DataFrame): DataFrame containing metadata.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing filtered genotype information.
         """
         
         print("Applying quality control filters to genotypes...")
@@ -159,7 +230,15 @@ class Region:
     def apply_quality_control_allele_depths(self, allele_depths_df: pd.DataFrame, variants_df: pd.DataFrame, metadata_df: pd.DataFrame) -> pd.DataFrame:
         
         """
-        Uses quality flags in position and sample metadata to drop uneeded allele depth rows and columns.
+        Applies quality control filters to the allele depths DataFrame using metadata.
+
+        Parameters:
+        allele_depths_df (pd.DataFrame): DataFrame containing allele depth information.
+        variants_df (pd.DataFrame): DataFrame containing variant information.
+        metadata_df (pd.DataFrame): DataFrame containing metadata.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing filtered allele depth information.
         """
         
         print("Applying quality control filters to allele depths...")
