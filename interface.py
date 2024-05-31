@@ -22,6 +22,9 @@ def multiregion(regions : List[str]) -> None:
     """
     Gives information about the variants in a certain region.
     The coordinates are 5' to 3' and relative to the start of the chromosome.
+
+    Parameters:
+    regions (List[str]): A list of regions to analyze.
     """
     
     config = Config()
@@ -37,6 +40,14 @@ def multiregion(regions : List[str]) -> None:
     
 @app.command()
 def bams(chromosome: str, position: int) -> None:
+
+    """
+    Analyzes BAM files for a specific chromosome and position.
+
+    Parameters:
+    chromosome (str): The chromosome to analyze.
+    position (int): The position on the chromosome to analyze.
+    """
     
     config = Config()
     bam_handler = Bam_handler(chromosome, position, config)
@@ -47,6 +58,9 @@ def position(position_coordinates: str) -> None:
     """
     For the given position, returns the distribution of frequencies of alternative alleles,
     over time and in different populations.
+
+    Parameters:
+    position_coordinates (str): The coordinates of the position to analyze.
     """
     
     config = Config()
