@@ -3,6 +3,13 @@ import pandas as pd
 from config import Config
 
 class Gff_handler:
+
+    """
+    Initializes the Gff_handler object, sets configuration values, and reads the GFF file.
+
+    Parameters:
+    config (Config): A Config object containing configuration settings.
+    """
     
     def __init__(self, config: Config):
         
@@ -12,7 +19,10 @@ class Gff_handler:
     def set_config_values(self, config: Config) -> None:
         
         """
-        Reads values from config object and sets them as self properties.
+        Reads values from the config object and sets them as attributes of the Gff_handler object.
+
+        Parameters:
+        config (Config): A Config object containing configuration settings.
         """
         
         print("Setting properties from config...")
@@ -24,7 +34,13 @@ class Gff_handler:
     def read_gff(self, gff_path):
         
         """
-        Reads provided .gff file and returns desired region coordinates
+        Reads the provided .gff file and returns desired region coordinates.
+
+        Parameters:
+        gff_path (str): The path to the .gff file.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing the formatted region coordinates.
         """
         
         print("Reading .gff file...")
