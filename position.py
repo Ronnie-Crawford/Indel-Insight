@@ -11,8 +11,12 @@ class Position:
     def __init__(self, position_coordinates: str, config: Config):
         
         """
-        Initialises the object; collates the genotypic, metadata and
-        allele depth data before calculating frequencies and additional data.
+        Initializes the Position object, collates genotypic, metadata, and allele depth data,
+        then calculates frequencies and additional data.
+
+        Parameters:
+        position_coordinates (str): The coordinates of the position in "chromosome:position" format.
+        config (Config): A Config object containing configuration settings.
         """
         
         self.set_config_values(config)
@@ -70,7 +74,10 @@ class Position:
     def set_config_values(self, config: Config) -> None:
         
         """
-        Reads values from config object and sets them as self properties.
+        Reads values from the config object and sets them as attributes of the Position object.
+
+        Parameters:
+        config (Config): A Config object containing configuration settings.
         """
         
         print("Setting properties from config...")
@@ -82,7 +89,13 @@ class Position:
     def format_chromosome_string(self, chromosome: str) -> str:
         
         """
-        Transforms input chromosome into format used in Pf dataset.
+        Transforms the input chromosome into the format used in the Pf dataset.
+
+        Parameters:
+        chromosome (str): The input chromosome string.
+
+        Returns:
+        str: The formatted chromosome string.
         """
         
         print("Formatting chromosome input...")
@@ -109,6 +122,12 @@ class Position:
         
         """
         Opens the .zarr file from the given path for the callset.
+
+        Parameters:
+        callset_path (str): The path to the callset file.
+
+        Returns:
+        zarr.hierarchy.Group: The zarr group containing the callset data.
         """
         
         print("Reading callset...")
@@ -116,6 +135,16 @@ class Position:
         return zarr.open(callset_path, "r")
     
     def read_fws(self, fws_path: str) -> pd.DataFrame:
+
+        """
+        Reads the Fws data from the specified path.
+
+        Parameters:
+        fws_path (str): The path to the Fws file.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing the Fws data.
+        """
         
         return pd.read_csv(fws_path, sep="\t")
     
@@ -125,8 +154,15 @@ class Position:
         ) -> int:
     
         """
-        Converts the chromosome and position on the chromosome
-        to a position within the callset data.
+        Converts the chromosome and position on the chromosome to a position within the callset data.
+
+        Parameters:
+        callset (zarr.hierarchy.Group): The zarr group containing genomic data.
+        chromosome (str): The chromosome identifier.
+        genome_coordinate (int): The genome coordinate.
+
+        Returns:
+        int: The position mask within the data.
         """
     
         print("Finding coordinate of position...")
@@ -141,8 +177,13 @@ class Position:
     def generate_metadata_df(self, metadata_path: str) -> pd.DataFrame:
         
         """
-        Extract metadata from the config metadata path
-        and format as a pandas dataframe.
+        Extracts metadata from the config metadata path and formats it as a pandas DataFrame.
+
+        Parameters:
+        metadata_path (str): The path to the metadata file.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing metadata.
         """
         
         print("Generating metadata dataframe...")
@@ -157,8 +198,16 @@ class Position:
         ) -> pd.DataFrame:
         
         """
-        Extract genotypes from the callset for the given position
-        and format into a dataframe.
+        Extracts genotypes from the callset for the given position and formats them into a DataFrame.
+
+        Parameters:
+        callset (zarr.hierarchy.Group): The zarr group containing genomic data.
+        metadata_df (pd.DataFrame): DataFrame containing metadata.
+        position_mask (int): The position mask within the data.
+        fws_df (pd.DataFrame): DataFrame containing Fws data.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing genotype information.
         """
        
         print("Generating genotypes dataframe...")
@@ -196,8 +245,14 @@ class Position:
         ) -> pd.DataFrame:
         
         """
-        From the callset, extract the allele depths for all alleles at each
-        position and generate as a dataframe.
+        From the callset, extracts the allele depths for all alleles at each position and generates them as a DataFrame.
+
+        Parameters:
+        callset (zarr.hierarchy.Group): The zarr group containing genomic data.
+        position_mask (int): The position mask within the data.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing allele depth information.
         """
         
         print("Generating allele depths dataframe...")
@@ -221,16 +276,30 @@ class Position:
     def apply_quality_control_genotypes(
         self, genotypes_df: pd.DataFrame
         ) -> pd.DataFrame:
-    
+
+        """
+        Applies quality control filters to the genotypes DataFrame.
+
+        Parameters:
+        genotypes_df (pd.DataFrame): DataFrame containing genotype information.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing filtered genotype information.
+        """
+        
         return genotypes_df[genotypes_df['QC pass'] == True]
     
     def find_frequencies(self, genotypes_df: pd.DataFrame) -> pd.DataFrame:
         
         """
-        Takes dataframe of genotypes,
-        counts occurence of each genotype in each group,
-        then finds frequencies of each genotype compared to total nonmissing
-        count in each group.
+        Takes a DataFrame of genotypes, counts occurrences of each genotype in each group,
+        then finds frequencies of each genotype compared to the total non-missing count in each group.
+
+        Parameters:
+        genotypes_df (pd.DataFrame): DataFrame containing genotype information.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing genotype frequencies.
         """
         
         print("Finding frequencies...")
@@ -267,9 +336,14 @@ class Position:
     def process_read_depths(self, genotypes_df: pd.DataFrame):
         
         """
-        For each sample, finds: the read depth of all alleles,
-        the reads depths of the major and minor alleles,
+        For each sample, finds the read depth of all alleles, the read depths of the major and minor alleles,
         and the ratio of these to the total read depth.
+
+        Parameters:
+        genotypes_df (pd.DataFrame): DataFrame containing genotype information.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing processed read depth information.
         """
         
         print("Processing read depths...")
@@ -313,64 +387,30 @@ class Position:
         return genotypes_df
     
     def calculate_position_reliability(self, genotypes_df: pd.DataFrame) -> float:
+
+        """
+        Calculates the reliability of the position based on the read depths and heterozygosity.
+
+        Parameters:
+        genotypes_df (pd.DataFrame): DataFrame containing genotype information.
+
+        Returns:
+        float: The calculated reliability of the position.
+        """
         
-        #clusters = KMeans(n_clusters=2)
-        
-        #genotypes_df["cluster"] = clusters.fit_predict(genotypes_df[["major_allele_depth"]])
-        
-        #high_fws_genotypes_df = genotypes_df[genotypes_df["Fws"] > self.clonal_sample_fws_threshold]
         het_genotypes_df = genotypes_df[genotypes_df["zygosity"] == "heterozygous"]
         low_fws_het_genotypes_df = het_genotypes_df[het_genotypes_df["Fws"] < self.low_fws_sample_threshold]
         high_fws_het_genotypes_df = het_genotypes_df[het_genotypes_df["Fws"] > self.clonal_sample_fws_threshold]
         
-        print((abs(low_fws_het_genotypes_df["major_allele_depth_ratio"]) - abs(low_fws_het_genotypes_df["minor_allele_depth_ratio"])).mean())
-        print((abs(low_fws_het_genotypes_df["major_allele_depth_ratio"]) - abs(low_fws_het_genotypes_df["minor_allele_depth_ratio"])).std())
-        
-        print(low_fws_het_genotypes_df["major_allele_depth_ratio"].mean())
-        print(low_fws_het_genotypes_df["minor_allele_depth_ratio"].mean())
-        
-        print(low_fws_het_genotypes_df["major_allele_depth_ratio"].kurtosis())
-        print(low_fws_het_genotypes_df["minor_allele_depth_ratio"].kurtosis())
-        
-        print(high_fws_het_genotypes_df["major_allele_depth_ratio"].std())
-        print(high_fws_het_genotypes_df["minor_allele_depth_ratio"].std())
-        
-        print(len(low_fws_het_genotypes_df))
-        
-        print(low_fws_het_genotypes_df["total_allele_depth"].mean())
-        
         return low_fws_het_genotypes_df["minor_allele_depth_ratio"].mean() / low_fws_het_genotypes_df["major_allele_depth_ratio"].mean()
         
-        
-        #print(high_fws_genotypes_df)
-        #print(low_fws_genotypes_df)
-        
-        #print(kurtosis(high_fws_genotypes_df["primary_allele_depth"]))
-        
-        #high_fws_genotypes_kurtosis = high_fws_genotypes_df["major_allele_depth"].std() + high_fws_genotypes_df["minor_allele_depth"].std()
-        #low_fws_genotypes_kurtosis = low_fws_genotypes_df["major_allele_depth"].std() + low_fws_genotypes_df["minor_allele_depth"].std()
-        
-        #print(low_fws_genotypes_df["major_allele_depth"].std())
-        #print(low_fws_genotypes_df["minor_allele_depth"].std())
-        #print(pd.concat([low_fws_genotypes_df["major_allele_depth"], low_fws_genotypes_df["minor_allele_depth"]]).std())
-        
-        #print(low_fws_genotypes_df["major_allele_depth"].kurtosis())
-        #print(low_fws_genotypes_df["minor_allele_depth"].kurtosis())
-        #print(pd.concat([low_fws_genotypes_df["major_allele_depth"], low_fws_genotypes_df["minor_allele_depth"]]).kurtosis())
-        
-        #print(print(len(low_fws_genotypes_df["major_allele_depth"])))
-        
-        #print(pd.concat([low_fws_genotypes_df["major_allele_depth"], low_fws_genotypes_df["minor_allele_depth"]]).std() / len(low_fws_genotypes_df))
-        #print(pd.concat([low_fws_genotypes_df["major_allele_depth"], low_fws_genotypes_df["minor_allele_depth"]]).kurtosis() / len(low_fws_genotypes_df))
-        
-        #return (pd.concat([low_fws_genotypes_df["major_allele_depth"], low_fws_genotypes_df["minor_allele_depth"]]).kurtosis() / pd.concat([low_fws_genotypes_df["major_allele_depth"], low_fws_genotypes_df["minor_allele_depth"]]).std()) * len(low_fws_genotypes_df)
-    
     def plot_space_time_groups(self, frequencies_df: pd.DataFrame) -> None:
         
         """
-        Iterates through each group,
-        plotting the frequency of each genotype
-        within each year within that group.
+        Iterates through each group, plotting the frequency of each genotype within each year within that group.
+
+        Parameters:
+        frequencies_df (pd.DataFrame): DataFrame containing genotype frequencies.
         """
         
         print("Plotting group frequencies...")
@@ -443,6 +483,13 @@ class Position:
             )
         
     def plot_fws_allele_depth_ratio(self, genotypes_df: pd.DataFrame) -> None:
+
+        """
+        Plots the ratio of allele depths to Fws.
+
+        Parameters:
+        genotypes_df (pd.DataFrame): DataFrame containing genotype information.
+        """
         
         hets_df = genotypes_df[genotypes_df["zygosity"] == "heterozygous"]
         
@@ -486,8 +533,10 @@ class Position:
     def investigate_clonal_samples(self, genotypes_df: pd.DataFrame) -> None:
         
         """
-        This function is used to add analyses needed for clonal samples
-        at the given position, but it is still being finalised.
+        This function is used to add analyses needed for clonal samples at the given position, but it is still being finalised.
+
+        Parameters:
+        genotypes_df (pd.DataFrame): DataFrame containing genotype information.
         """
         
         print("Plotting sequencing groups within clonal samples...")
@@ -518,23 +567,3 @@ class Position:
                 )]
         
         print(clonal_genotypes_df[["genotype", "major_allele_depth", "minor_allele_depth", "major_allele_depth_ratio", "minor_allele_depth_ratio"]].sort_values("major_allele_depth_ratio"))
-        #print(clonal_genotypes_df.sort_values("primary_allele_depth_ratio").iloc[0])
-        #print(clonal_genotypes_df["Year"].value_counts())
-        #print(clonal_genotypes_df["Study"].value_counts())
-        
-        #print(clonal_genotypes_df[genotypes_df["zygosity"] == "heterozygous"].sort_values("Fws").head(50).iloc[0])
-        #print(clonal_genotypes_df[genotypes_df["genotype"] == "[1, 2]"].sort_values("Fws", ascending = False).head(50))
-        #print(genotypes_df[["zygosity", "Sample type"]].groupby(["zygosity", "Sample type"]).value_counts().unstack())
-        #print(clonal_genotypes_df[["zygosity", "Sample type"]].groupby(["zygosity", "Sample type"]).value_counts().unstack())
-        #print(clonal_genotypes_df[["genotype", "Sample type"]].groupby(["genotype", "Sample type"]).value_counts().unstack())
-        #print(clonal_genotypes_df[clonal_genotypes_df["zygosity"] == "heterozygous"].sort_values("Fws", ascending = False).head(50))
-        
-        #het_clonal_genotypes_df = clonal_genotypes_df[genotypes_df["genotype"] == "[2, 3]"].sort_values("Fws", ascending = False)
-        
-        #print(f"Samples in study 1052-PF-TRAC-WHITE : {len(het_clonal_genotypes_df[het_clonal_genotypes_df['Study'] == '1052-PF-TRAC-WHITE'])} out of {len(het_clonal_genotypes_df['Year'])}")
-        #print(het_clonal_genotypes_df["Year"].value_counts())
-        
-        #print(clonal_genotypes_df[["Study", "Country", "Year", "Sample type", "zygosity"]].value_counts().unstack().reset_index().fillna(0).head(50))
-        
-        #clonal_genotypes_df[["Study", "Country", "Year", "Sample type", "zygosity"]].value_counts().unstack().reset_index().fillna(0).to_csv(f"{self.results_path}/clonal_samples_distribution.tsv", sep='\t')
-        
