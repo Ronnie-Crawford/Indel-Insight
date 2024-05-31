@@ -15,6 +15,14 @@ class Multiregion:
     
     def __init__(self, *regions: Region, config: Config):
         
+        """
+        Initializes the Multiregion object, sets configuration values, and processes regions.
+
+        Parameters:
+        regions (str): Variable length region strings.
+        config (Config): A Config object containing configuration settings.
+        """
+    
         self.set_config_values(config)
         self.callset = self.read_callset(self.callset_path)
         self.genotypes_df, self.variants_df, self.metadata_df, self.allele_depths_df = self.iterate_regions(regions, config, self.callset)
@@ -23,19 +31,30 @@ class Multiregion:
         self.allele_list = self.generate_allele_list(self.variants_df, self.frequencies_df)
         
     def plot_plots(self) -> None:
-    
+
+        """
+        Generates and saves plots for the regions.
+        """
+        
         self.plot_allele_frequency_spectrum(self.allele_list)
         self.plot_heuristics(self.allele_list)
         #self.plot_heurisitcs_pca(self.allele_list)
         
     def save_lists(self) -> None:
-    
+
+        """
+        Saves lists of processed data for the regions.
+        """
+        
         self.allele_list.to_csv(f"{self.results_path}/allele_list.tsv", sep='\t')
         
     def set_config_values(self, config: Config) -> None:
         
         """
-        Reads values from config object and sets them as self properties.
+        Reads values from the config object and sets them as attributes of the Multiregion object.
+
+        Parameters:
+        config (Config): A Config object containing configuration settings.
         """
         
         print("Setting properties from config...")
@@ -47,7 +66,13 @@ class Multiregion:
     def read_callset(self, callset_path: str) -> zarr.hierarchy.Group:
         
         """
-        Looks at callset path and loads it into memory.
+        Reads the callset from the specified path and loads it into memory.
+
+        Parameters:
+        callset_path (str): The path to the callset file.
+
+        Returns:
+        zarr.hierarchy.Group: The loaded callset.
         """
         
         print("Reading callset...")
@@ -55,6 +80,18 @@ class Multiregion:
         return zarr.open(callset_path, "r")
             
     def iterate_regions(self, regions: list, config: Config, callset: zarr.hierarchy.Group) -> pd.DataFrame:
+
+        """
+        Iterates through the provided regions, processing each one to extract genotypic, variant, and allele depth data.
+
+        Parameters:
+        regions (list): List of regions to process.
+        config (Config): A Config object containing configuration settings.
+        callset (zarr.hierarchy.Group): The loaded callset.
+
+        Returns:
+        tuple: DataFrames containing genotypic, variant, metadata, and allele depth data.
+        """
         
         genotypes_df = pd.DataFrame()
         variants_df = pd.DataFrame()
@@ -87,6 +124,12 @@ class Multiregion:
         
         """
         Counts the number of each genotype at each position.
+
+        Parameters:
+        genotypes_df (pd.DataFrame): DataFrame containing genotypic data.
+
+        Returns:
+        pd.DataFrame: DataFrame containing frequencies of each genotype.
         """
         
         print("Finding frequencies of genotypes...")
@@ -100,14 +143,30 @@ class Multiregion:
         return frequencies_df
     
     def read_fws(self, fws_path) -> pd.DataFrame:
+
+        """
+        Reads the Fws data from the specified path.
+
+        Parameters:
+        fws_path (str): The path to the Fws file.
+
+        Returns:
+        pd.DataFrame: DataFrame containing Fws data.
+        """
         
         return pd.read_csv(fws_path, sep="\t")
         
     def generate_allele_list(self, variants_df: pd.DataFrame, frequencies_df: pd.DataFrame) -> pd.DataFrame:
         
         """
-        Reformats frequencies data as a list of all alleles within the given regions.
-        Adds heuristics for each allele.
+        Reformats frequencies data as a list of all alleles within the given regions and adds heuristics for each allele.
+
+        Parameters:
+        variants_df (pd.DataFrame): DataFrame containing variant data.
+        frequencies_df (pd.DataFrame): DataFrame containing frequencies of each genotype.
+
+        Returns:
+        pd.DataFrame: DataFrame containing allele list with added heuristics.
         """
         
         print("Generating allele list...")
@@ -175,7 +234,13 @@ class Multiregion:
     def find_allele_type(self, allele: pd.Series) -> str:
         
         """
-        Identifies the type of an allele based on the relationship between alterate and reference sequences.
+        Identifies the type of an allele based on the relationship between alternate and reference sequences.
+
+        Parameters:
+        allele (pd.Series): A series representing an allele.
+
+        Returns:
+        str: The type of the allele.
         """
         
         if allele['ALT'] == "*":
@@ -206,6 +271,12 @@ class Multiregion:
         
         """
         For a given allele, extracts the number of homozygous calls of that allele from the data.
+
+        Parameters:
+        allele (pd.Series): A series representing an allele.
+
+        Returns:
+        int: The count of homozygous calls.
         """
     
         return allele[f'[{allele.allele_index}, {allele.allele_index}]']
@@ -213,29 +284,28 @@ class Multiregion:
     def count_heterozygous(self, allele: pd.Series) -> pd.Series:
         
         """
-        For a given allele, extracts the number of heterozygous calls which that allele appears in.
+        For a given allele, extracts the number of heterozygous calls in which that allele appears.
+
+        Parameters:
+        allele (pd.Series): A series representing an allele.
+
+        Returns:
+        int: The count of heterozygous calls.
         """
         
         het_columns = [column for column in allele.index if (column.count(str(allele.allele_index)) == 1)]
         return allele[het_columns].sum()
     
-    def check_synonymous(self, allele: pd.Series) -> pd.Series:
-        
-        """
-        For the given allele, check if the alternative allele codes for the same amino acid chain as the reference.
-        """
-        
-        print("Checking for synonymous mutations...")
-        
-        frame_index = (allele["POS"] - allele["region_start"]) % 3
-        
-        
-        
-    
     def depolymer_sequence(self, sequence: str) -> str:
         
         """
         Given a sequence, reduces consecutive repeats of bases to single bases.
+
+        Parameters:
+        sequence (str): The input sequence.
+
+        Returns:
+        str: The depolymerized sequence.
         """
         
         return ''.join([sequence[i] for i in range(len(sequence)) if (i==0) | (sequence[i] != sequence[i-1])])
@@ -243,10 +313,13 @@ class Multiregion:
     def compress_sequence(self, sequence: str) -> str:
         
         """
-        Given a sequence, checks it is not empty, otherwise changes it to lowercase,
-        find the kmer which can best compress the sequence and compresses repeats of
-        that kmer to a compressed representation,
-        then iteratively applies this method to remaining uncompressed sequence.
+        Compresses repeats of kmers in a sequence to a compressed representation.
+
+        Parameters:
+        sequence (str): The input sequence.
+
+        Returns:
+        str: The compressed sequence.
         """
         
         if sequence == "" : return sequence
@@ -266,8 +339,13 @@ class Multiregion:
     def iterate_possible_kmers(self, sequence: str) -> list:
         
         """
-        Iterates through unique kmers which are present within given sequence,
-        and finds the number of times they occur consecutively.
+        Iterates through unique kmers in the given sequence, finding the number of times they occur consecutively.
+
+        Parameters:
+        sequence (str): The input sequence.
+
+        Returns:
+        list: A list of kmers and their counts.
         """
         
         kmers = []
@@ -295,8 +373,13 @@ class Multiregion:
     def find_best_kmer(self, kmers: list) -> tuple:
         
         """
-        Given a list of kmers, identifies the longests kmer with the most repeats,
-        which best compresses the sequence.
+        Identifies the longest kmer with the most repeats that compresses the sequence the most.
+
+        Parameters:
+        kmers (list): A list of kmers and their counts.
+
+        Returns:
+        tuple: The best kmer and its count.
         """
         
         best_kmer = kmers[0]
@@ -316,6 +399,16 @@ class Multiregion:
         return best_kmer
     
     def find_score_compression(self, allele: pd.Series) -> float:
+
+        """
+        Calculates the compression score of the contextual sequence.
+
+        Parameters:
+        allele (pd.Series): A series representing an allele.
+
+        Returns:
+        float: The compression score.
+        """
         
         sequence = allele['compressed_contextual_sequence'][1:-1]
         units = sequence.split('][')
@@ -325,11 +418,15 @@ class Multiregion:
         return len(most_repetitions) / number_of_units
     
     def find_strs(self, allele: pd.Series) -> bool:
-        
+
         """
-        Compares compressed reference to compressed alternative allele.
-        If the only difference is the number of times each unit repeats (but the same units exist),
-        calls the alternative allele as an STR indel.
+        Identifies if an allele is a short tandem repeat (STR) by comparing compressed reference to compressed alternative allele.
+
+        Parameters:
+        allele (pd.Series): A series representing an allele.
+
+        Returns:
+        bool: True if the allele is an STR, False otherwise.
         """
         
         reference_representation = [element for element in allele["compressed_reference_sequence"] if not element.isdigit()]
@@ -341,7 +438,16 @@ class Multiregion:
     def find_frequencies_in_clonals(self, genotypes_df: pd.DataFrame, fws_df: pd.DataFrame, clonal_sample_fws_threshold: int, allele_list: pd.DataFrame) -> pd.DataFrame:
         
         """
-        
+        Finds allele frequencies in clonal samples.
+
+        Parameters:
+        genotypes_df (pd.DataFrame): DataFrame containing genotypic data.
+        fws_df (pd.DataFrame): DataFrame containing Fws data.
+        clonal_sample_fws_threshold (int): Threshold for identifying clonal samples.
+        allele_list (pd.DataFrame): DataFrame containing allele data.
+
+        Returns:
+        pd.DataFrame: DataFrame containing clonal allele frequencies.
         """
         
         clonal_samples_df = np.where(fws_df["Fws"] >= clonal_sample_fws_threshold, True, False)
@@ -360,7 +466,16 @@ class Multiregion:
     def find_contextual_sequence(self, allele_list: pd.DataFrame, upstream_window_length: int, downstream_window_length: int, reference_genome_path: str) -> pd.DataFrame:
         
         """
-        
+        Finds the contextual reference sequences for each allele.
+
+        Parameters:
+        allele_list (pd.DataFrame): DataFrame containing allele data.
+        upstream_window_length (int): Length of upstream sequence to extract.
+        downstream_window_length (int): Length of downstream sequence to extract.
+        reference_genome_path (str): Path to the reference genome.
+
+        Returns:
+        pd.DataFrame: DataFrame containing alleles with contextual sequences.
         """
         
         print("Finding contextual reference sequences...")
@@ -390,6 +505,16 @@ class Multiregion:
         return allele_list
     
     def find_gc_content(self, sequence: str) -> float:
+
+        """
+        Calculates the GC content of a sequence.
+
+        Parameters:
+        sequence (str): The input sequence.
+
+        Returns:
+        float: The GC content.
+        """
         
         sequence = sequence.lower()
         c_count = sequence.count('c')
@@ -400,7 +525,14 @@ class Multiregion:
     def find_allele_depths(self, allele_depths_df: pd.DataFrame, allele_list: pd.DataFrame) -> pd.DataFrame:
         
         """
-        
+        Finds the average depth of alleles at each position.
+
+        Parameters:
+        allele_depths_df (pd.DataFrame): DataFrame containing allele depth data.
+        allele_list (pd.DataFrame): DataFrame containing allele data.
+
+        Returns:
+        pd.DataFrame: DataFrame containing alleles with average depth information.
         """
         
         print("Finding average depth of alleles at each position...")
@@ -420,7 +552,17 @@ class Multiregion:
     def find_clonal_allele_depths(self,  allele_depths_df: pd.DataFrame, fws_df: pd.DataFrame, genotypes_df: pd.DataFrame, allele_list: pd.DataFrame, low_fws_threshold: float) -> pd.DataFrame:
         
         """
-        
+        Finds the allele depths for clonal samples.
+
+        Parameters:
+        allele_depths_df (pd.DataFrame): DataFrame containing allele depth data.
+        fws_df (pd.DataFrame): DataFrame containing Fws data.
+        genotypes_df (pd.DataFrame): DataFrame containing genotypic data.
+        allele_list (pd.DataFrame): DataFrame containing allele data.
+        low_fws_threshold (float): Threshold for identifying low Fws samples.
+
+        Returns:
+        pd.DataFrame: DataFrame containing alleles with clonal allele depth information.
         """
         
         low_fws_samples_df = np.where(fws_df["Fws"] <= low_fws_threshold, True, False)
@@ -439,6 +581,17 @@ class Multiregion:
         return allele_list
     
     def find_average_allele_depths_of_hets(self, position: pd.Series, low_fws_genotypes_df: pd.DataFrame):
+
+        """
+        Finds the average allele depths for heterozygous calls in low Fws samples.
+
+        Parameters:
+        position (pd.Series): Series representing allele depths at a position.
+        low_fws_genotypes_df (pd.DataFrame): DataFrame containing genotypic data for low Fws samples.
+
+        Returns:
+        float: The mean difference between major and minor allele depths.
+        """
         
         position_low_fws_samples = low_fws_genotypes_df.loc[(position.name[0], position.name[1])]
         
@@ -474,7 +627,10 @@ class Multiregion:
     def plot_allele_frequency_spectrum(self, allele_list: pd.DataFrame) -> None:
         
         """
-        
+        Plots the allele frequency spectrum.
+
+        Parameters:
+        allele_list (pd.DataFrame): DataFrame containing allele data.
         """
         
         print("Plotting allele frequency spectrum...")
@@ -512,7 +668,10 @@ class Multiregion:
     def plot_heuristics(self, allele_list: pd.DataFrame) -> None:
         
         """
-        
+        Plots various heuristics for the alleles.
+
+        Parameters:
+        allele_list (pd.DataFrame): DataFrame containing allele data.
         """
         
         print("Plotting heuristics...")
@@ -546,6 +705,10 @@ class Multiregion:
     def plot_heurisitcs_pca(self, allele_list: pd.DataFrame) -> None:
         
         """
+        Plots the results of a PCA analysis on the heuristics.
+
+        Parameters:
+        allele_list (pd.DataFrame): DataFrame containing allele data.
         """
         
         print("Plotting heuristics PCA...")
