@@ -11,6 +11,8 @@ Requires:
 - matplotlib
 - sklearn
 
+You can also use ```conda env create -f environment.yml``` to recreate the exact environment using Conda.
+
 ## Configuration
 A config file is required for usage, an example file is included but must be customised before use.
 - ```data_path``` - No longer used, replaced with specific data paths.
